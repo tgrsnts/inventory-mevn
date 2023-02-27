@@ -17,20 +17,18 @@ mongoose.connect(database.db, {
     console.log('Cannot connect to database ' + error);
 })
 
-const studentAPI = require('./routes/student.route');
-const barangAPI = require('./routes/barang.route');
+const API = require('./routes/');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({
-    extended: false
+    extended: true
 }))
 
 // Cors
 app.use(cors());
 
 // API
-app.use('/api', studentAPI);
-app.use('/api', barangAPI);
+app.use('/api', API);
 
 // CREATE PORT
 const port = process.env.PORT || 4000;

@@ -48,7 +48,7 @@ export default {
         }
     },
     created() {
-        let apiURL = 'http://localhost:4000/api';
+        let apiURL = 'http://localhost:4000/api/student';
         axios.get(apiURL).then(res => {
             this.Students = res.data
         }).catch(error => {
