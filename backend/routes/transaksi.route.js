@@ -4,7 +4,6 @@ const transaksiRoute = express.Router();
 // Transaksi model
 let TransaksiModel = require('../models/Transaksi');
 let BarangProjectModel = require('../models/BarangProject');
-const { json } = require('express');
 
 // Get all data
 transaksiRoute.route('/transaksi').get((req, res, next) => {
@@ -19,28 +18,114 @@ transaksiRoute.route('/transaksi').get((req, res, next) => {
 
 // Create transaksi data
 transaksiRoute.route('/create-transaksi').post((req, res, next) => {
-    TransaksiModel.create(req.body, (error, data) => {
-        if (error) {
-            return next(error);
-        } else {         
-            BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, (error, data) => {
-                if (error) {
-                    return next(error)
-                } else {                        
-                    res.json(data)
-                    BarangProjectModel.updateOne({id_barang: req.body.id_barang, id_project: req.body.dari}, 
-                        { $set: { stock: data.stock - req.body.keluar } }, (error, data) => {
-                        if (error) {
-                            return next(error)
+    if (req.body.dari && req.body.ke) {
+        BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, (errorBarangProjectDari, dataBarangProjectDari) => {
+            if (errorBarangProjectDari) {
+                return next(errorBarangProjectDari)
+            } else {
+                BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: dataBarangProjectDari.stock - req.body.keluar } }, (errorUpdateDari, dataUpdateDari) => {
+                    if (errorUpdateDari) {
+                        return next(errorUpdateDari)
+                    } else {
+                        BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, (errorBarangProjectKe, dataBarangProjectKe) => {
+                            if (errorBarangProjectKe) {
+                                return next(errorBarangProjectKe)
+                            } else {
+                                if (dataBarangProjectKe) {
+                                    BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: dataBarangProjectKe.stock + req.body.keluar } }, (errorUpdateKe, dataUpdateKe) => {
+                                        if (errorUpdateKe) {
+                                            return next(errorUpdateKe)
+                                        } else {
+                                            TransaksiModel.create(req.body, (errorTransaksi, dataTransaksi) => {
+                                                if (errorTransaksi) {
+                                                    return next(errorTransaksi);
+                                                } else {
+                                                    res.json(dataTransaksi);
+                                                }
+                                            })
+                                        }
+                                    })
+                                } else {
+                                    BarangProjectModel.create({ code_project: req.body.code_project, id_barang: req.body.id_barang, id_project: req.body.id_project, stock: req.body.keluar, remark: req.body.remark }, (errorUpdateKe, dataUpdateKe) => {
+                                        if (errorUpdateKe) {
+                                            return next(errorUpdateKe)
+                                        } else {
+                                            TransaksiModel.create(req.body, (errorTransaksi, dataTransaksi) => {
+                                                if (errorTransaksi) {
+                                                    return next(errorTransaksi);
+                                                } else {
+                                                    res.json(dataTransaksi);
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    } else if (req.body.dari) {
+        BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, (errorBarangProject, dataBarangProject) => {
+            if (errorBarangProject) {
+                return next(errorBarangProject)
+            } else {
+                BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: dataBarangProject.stock - req.body.keluar } }, (errorUpdate, dataUpdate) => {
+                    if (errorUpdate) {
+                        return next(errorUpdate)
+                    } else {
+                        TransaksiModel.create(req.body, (errorTransaksi, dataTransaksi) => {
+                            if (errorTransaksi) {
+                                return next(errorTransaksi);
+                            } else {
+                                res.json(dataTransaksi);
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    } else if (req.body.ke) {
+        BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, (errorBarangProject, dataBarangProject) => {
+            if (errorBarangProject) {
+                return next(errorBarangProject)
+            } else {
+                if (dataBarangProject) {
+                    BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: dataBarangProject.stock + req.body.masuk } }, (errorUpdate, dataUpdate) => {
+                        if (errorUpdate) {
+                            return next(errorUpdate)
                         } else {
-                            res.json(data);
+                            TransaksiModel.create(req.body, (errorTransaksi, dataTransaksi) => {
+                                if (errorTransaksi) {
+                                    return next(errorTransaksi);
+                                } else {
+                                    res.json(dataTransaksi);
+                                }
+                            })
+                        }
+                    })
+                } else {
+                    BarangProjectModel.create({ code_project: req.body.code_project, id_barang: req.body.id_barang, id_project: req.body.id_project, stock: req.body.masuk, remark: req.body.remark }, (errorCreate, dataCreate) => {
+                        if (errorCreate) {
+                            return next(errorCreate)
+                        } else {
+                            TransaksiModel.create(req.body, (errorTransaksi, dataTransaksi) => {
+                                if (errorTransaksi) {
+                                    return next(errorTransaksi);
+                                } else {
+                                    res.json(dataTransaksi);
+                                }
+                            })
                         }
                     })
                 }
-            })            
-            res.json(data);
-        }
-    })
+            }
+        })
+    } else {
+
+    }
+
 })
 
 // Edit transaksi data
