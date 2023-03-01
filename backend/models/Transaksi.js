@@ -3,16 +3,16 @@ const Schema = mongoose.Schema;
 
 let transaksiSchema = new Schema({
     dari: {
-        type: String
+        type: mongoose.Types.ObjectId, ref: "Project"
     },
     ke: {
-        type: String
-    },
-    dari: {
-        type: String
+        type: mongoose.Types.ObjectId, ref: "Project"
     },
     code_project: {
         type: String
+    },
+    id_barang: {
+        type: mongoose.Types.ObjectId, ref: "Barang"
     },
     masuk: {
         type: Number

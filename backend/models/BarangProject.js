@@ -6,10 +6,10 @@ let barangProjectSchema = new Schema({
         type: String
     },
     id_barang: {
-        type: String
+        type: mongoose.Types.ObjectId, ref: "Barang"
     },
     id_project: {
-        type: String
+        type: mongoose.Types.ObjectId, ref: "Project"
     },
     stock: {
         type: Number
