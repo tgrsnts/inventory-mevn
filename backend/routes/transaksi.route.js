@@ -46,7 +46,7 @@ transaksiRoute.route('/create-transaksi').post((req, res, next) => {
                                         }
                                     })
                                 } else {
-                                    BarangProjectModel.create({ code_project: req.body.code_project, id_barang: req.body.id_barang, id_project: req.body.id_project, stock: req.body.keluar, remark: req.body.remark }, (errorUpdateKe, dataUpdateKe) => {
+                                    BarangProjectModel.create({ code_project: req.body.code_project, id_barang: req.body.id_barang, id_project: req.body.ke, stock: req.body.keluar, remark: req.body.remark }, (errorUpdateKe, dataUpdateKe) => {
                                         if (errorUpdateKe) {
                                             return next(errorUpdateKe)
                                         } else {
