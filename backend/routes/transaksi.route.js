@@ -23,7 +23,7 @@ transaksiRoute.route('/create-transaksi').post((req, res, next) => {
             if (errorBarangProjectDari) {
                 return next(errorBarangProjectDari)
             } else {
-                BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: dataBarangProjectDari.stock - req.body.keluar } }, (errorUpdateDari, dataUpdateDari) => {
+                BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: parseInt(dataBarangProjectDari.stock) - parseInt(req.body.keluar) } }, (errorUpdateDari, dataUpdateDari) => {
                     if (errorUpdateDari) {
                         return next(errorUpdateDari)
                     } else {
@@ -32,7 +32,7 @@ transaksiRoute.route('/create-transaksi').post((req, res, next) => {
                                 return next(errorBarangProjectKe)
                             } else {
                                 if (dataBarangProjectKe) {
-                                    BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: dataBarangProjectKe.stock + req.body.keluar } }, (errorUpdateKe, dataUpdateKe) => {
+                                    BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: parseInt(dataBarangProjectKe.stock) + parseInt(req.body.keluar) } }, (errorUpdateKe, dataUpdateKe) => {
                                         if (errorUpdateKe) {
                                             return next(errorUpdateKe)
                                         } else {
@@ -71,7 +71,7 @@ transaksiRoute.route('/create-transaksi').post((req, res, next) => {
             if (errorBarangProject) {
                 return next(errorBarangProject)
             } else {
-                BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: dataBarangProject.stock - req.body.keluar } }, (errorUpdate, dataUpdate) => {
+                BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: parseInt(dataBarangProject.stock) - parseInt(req.body.keluar) } }, (errorUpdate, dataUpdate) => {
                     if (errorUpdate) {
                         return next(errorUpdate)
                     } else {
@@ -92,7 +92,7 @@ transaksiRoute.route('/create-transaksi').post((req, res, next) => {
                 return next(errorBarangProject)
             } else {
                 if (dataBarangProject) {
-                    BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: dataBarangProject.stock + req.body.masuk } }, (errorUpdate, dataUpdate) => {
+                    BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: parseInt(dataBarangProject.stock) + parseInt(req.body.masuk) } }, (errorUpdate, dataUpdate) => {
                         if (errorUpdate) {
                             return next(errorUpdate)
                         } else {
@@ -141,16 +141,62 @@ transaksiRoute.route('/edit-transaksi/:id').get((req, res, next) => {
 
 // Update transaksi data
 transaksiRoute.route('/update-transaksi/:id').put((req, res, next) => {
-    TransaksiModel.findByIdAndUpdate(req.params.id, {
-        $set: req.body
-    }, (error, data) => {
-        if (error) {
-            return next(error);
+    TransaksiModel.findOne({ _id: req.params.id}, (errorTransaksi, dataTransaksi) => {
+        if(errorTransaksi){
+            return next(errorTransaksi)
         } else {
-            res.json(data);
-            console.log('Transaksi successfully updated.')
+            if (req.body.dari && req.body.ke) {
+                BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, (errorBarangProjectDari, dataBarangProjectDari) => {
+                    if (errorBarangProjectDari) {
+                        return next(errorBarangProjectDari)
+                    } else {
+                        BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: parseInt(dataBarangProjectDari.stock) + parseInt(dataTransaksi.keluar) } }, (errorUpdateDari, dataUpdateDari) => {
+                            if (errorUpdateDari) {
+                                return next(errorUpdateDari)
+                            } else {
+                                BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, (errorBarangProjectKe, dataBarangProjectKe) => {
+                                    if (errorBarangProjectKe) {
+                                        return next(errorBarangProjectKe)
+                                    } else {
+                                        BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: parseInt(dataBarangProjectKe.stock) - parseInt(dataTransaksi.keluar) } })
+                                    }
+                                }) 
+                            }
+                        })
+                    }
+                })
+            } else if (req.body.dari) {
+                BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, (errorBarangProject, dataBarangProject) => {
+                    if (errorBarangProject) {
+                        return next(errorBarangProject)
+                    } else {
+                        BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.dari }, { $set: { stock: parseInt(dataBarangProject.stock) + parseInt(dataTransaksi.keluar) } }, (errorUpdate, dataUpdate) => {
+                            if (errorUpdate) {
+                                return next(errorUpdate)
+                            }
+                        })
+                    }
+                })
+            } else if (req.body.ke) {
+                BarangProjectModel.findOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, (errorBarangProject, dataBarangProject) => {
+                    if (errorBarangProject) {
+                        return next(errorBarangProject)
+                    } else {
+                        if (dataBarangProject) {
+                            BarangProjectModel.updateOne({ id_barang: req.body.id_barang, id_project: req.body.ke }, { $set: { stock: parseInt(dataBarangProject.stock) - parseInt(dataTransaksi.masuk) } }, (errorUpdate, dataUpdate) => {
+                                if (errorUpdate) {
+                                    return next(errorUpdate)
+                                }
+                            })
+                        }
+                    }
+                })
+            } else {
+        
+            }   
         }
     })
+    
 })
 
 // Delete transaksi data

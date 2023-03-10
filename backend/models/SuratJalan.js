@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 let suratJalanSchema = new Schema({
     id_project: {
-        type: String
+        type: mongoose.Types.ObjectId, ref: "Project"
     },
     delivery: {
         type: String
